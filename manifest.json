@@ -1,14 +1,19 @@
 {
   "name": "ZirhNote — Xavfsiz Kundalik",
   "short_name": "ZirhNote",
-  "start_url": "./index.html",
+  "start_url": "/zirhnote/",
+  "scope": "/zirhnote/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
-  "orientation": "portrait",
   "icons": [
     {
-      "src": "https://flaticon.com",
+      "src": "https://githubassets.com",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://githubassets.com",
       "sizes": "512x512",
       "type": "image/png"
     }
