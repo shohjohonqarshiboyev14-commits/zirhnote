@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0f172a">
+  <title>ZirhNote — Shifrlangan Xavfsiz Kundalik</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --sub: #94a3b8; --acc: #3b82f6; --brd: #334155; }
+    [data-theme="light"] { --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; --sub: #64748b; --acc: #2563eb; --brd: #cbd5e1; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    header { background: var(--card); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--brd); position: sticky; top: 0; z-index: 10; }
+    .icon-btn { background: var(--bg); border: 1px solid var(--brd); color: var(--text); padding: 8px 11px; border-radius: 10px; font-size: 16px; }
+    .box { max-width: 520px; width: 100%; margin: 0 auto; padding: 16px; flex: 1; }
+    #lockScreen { text-align: center; margin-top: 40px; display: flex; flex-direction: column; gap: 14px; }
+    input, textarea, select { width: 100%; padding: 13px; border-radius: 12px; border: 1px solid var(--brd); background: var(--card); color: var(--text); font-size: 15px; outline: none; }
+    .btn { width: 100%; padding: 13px; border: none; border-radius: 12px; background: var(--acc); color: #fff; font-size: 16px; font-weight: bold; }
+    #appScreen { display: none; flex-direction: column; gap: 14px; }
+    .form-box, .sec-box { background: var(--card); padding: 14px; border-radius: 14px; border: 1px solid var(--brd); display: flex; flex-direction: column; gap: 10px; }
+    .tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+    .tab { padding: 7px 12px; border-radius: 20px; border: 1px solid var(--brd); background: var(--card); color: var(--text); font-size: 13px; white-space: nowrap; }
+    .tab.active { background: var(--acc); color: #fff; border-color: var(--acc); }
+    .card { background: var(--card); padding: 14px; border-radius: 12px; border: 1px solid var(--brd); position: relative; }
+    .card-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 8px; }
+    .act-btn { background: none; border: none; font-size: 17px; }
+    .cat-badge { font-size: 11px; padding: 3px 8px; border-radius: 6px; background: rgba(59,130,246,0.15); color: var(--acc); display: inline-block; margin-bottom: 6px; }
+    
+    /* Maxfiylik oynasi (Modal) */
+    #privacyModal {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.75); z-index: 100; justify-content: center; align-items: center; padding: 16px;
+    }
+    .modal-content {
+      background: var(--card); border: 1px solid var(--brd); border-radius: 16px; padding: 20px;
+      max-width: 480px; width: 100%; max-height: 85vh; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
+    }
+    .priv-link { background: none; border: none; color: var(--acc); font-size: 13px; text-decoration: underline; margin-top: 8px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <header>
+    <b>🛡️ ZirhNote</b>
+    <div style="display:flex; gap:6px;">
+      <button class="icon-btn" id="infoBtn" title="Maxfiylik va xavfsizlik">📜</button>
+      <button class="icon-btn" id="secBtn" style="display:none;">⚙️</button>
+      <button class="icon-btn" id="themeBtn">☀️</button>
+      <button class="icon-btn" id="lockBtn" style="display:none;">🔒</button>
+    </div>
+  </header>
+
+  <div class="box">
+    <div id="lockScreen">
+      <div style="font-size:50px;">🔐</div>
+      <h2 id="lockTitle">Yangi Master-Parol</h2>
+      <p style="color:var(--sub); font-size:14px;">Barcha ma'lumotlar shifrlangan holda saqlanadi</p>
+      <input type="password" id="masterPass" placeholder="Parol (kamida 4 belgi)...">
+      <p id="err" style="color:#ef4444; font-size:14px;"></p>
+      <button class="btn" id="unlockBtn">Kirish</button>
+      <button class="priv-link" onclick="openPrivacy()">📜 Maxfiylik siyosati va Xavfsizlik kafolati</button>
+    </div>
+
+    <div id="appScreen">
+      <div id="secPanel" class="sec-box" style="display:none;">
+        <b>🕵️ Soxta (Chalg'ituvchi) parol</b>
+        <p style="font-size:12px; color:var(--sub);">Majburlashganda shu parolni kiritsangiz, alohida soxta sahifa ochiladi:</p>
+        <input type="password" id="fakePassInput" placeholder="Soxta parol (kamida 4 belgi)...">
+        <button class="btn" id="saveFakeBtn" style="background:#10b981;">Soxta parolni saqlash</button>
+      </div>
+
+      <div class="form-box">
+        <select id="nCat">
+          <option value="💳 Karta / Parol">💳 Karta / Parol</option>
+          <option value="📔 Kundalik">📔 Shaxsiy kundalik</option>
+          <option value="💼 Muhim ish">💼 Muhim / Ish</option>
+        </select>
+        <input type="text" id="nTitle" placeholder="Sarlavha...">
+        <textarea id="nBody" rows="3" placeholder="Maxfiy yozuv..."></textarea>
+        <button class="btn" id="saveBtn">🛡️ Shifrlab saqlash</button>
+      </div>
+
+      <input type="text" id="searchInput" placeholder="🔍 Yozuvlardan qidirish...">
+
+      <div class="tabs" id="catTabs">
+        <button class="tab active" data-cat="ALL">Barchasi</button>
+        <button class="tab" data-cat="💳 Karta / Parol">💳 Karta/Parol</button>
+        <button class="tab" data-cat="📔 Kundalik">📔 Kundalik</button>
+        <button class="tab" data-cat="💼 Muhim ish">💼 Muhim</button>
+      </div>
+
+      <div style="font-size:14px; color:var(--sub); display:flex; justify-content:space-between;">
+        <span>Topildi: <b id="cnt">0</b> ta</span>
+        <span style="color:#10b981; font-size:12px;">⏱️ Avto-qulf: 45s</span>
+      </div>
+      <div id="list" style="display:flex; flex-direction:column; gap:10px;"></div>
+    </div>
+  </div>
+
+  <!-- MAXFIYLIK VA XAVFSIZLIK OYNASI -->
+  <div id="privacyModal">
+    <div class="modal-content">
+      <h3>📜 Maxfiylik va Xavfsizlik</h3>
+      <p style="font-size:14px; line-height:1.5; color:var(--text);">
+        <b>1. Zero-Knowledge (Nol bilim) tizimi:</b> Sizning Master-parolingiz hech qayerga yuborilmaydi va saqlanmaydi. Barcha yozuvlar faqat sizning qurilmangizda shifrlanadi.
+      </p>
+      <p style="font-size:14px; line-height:1.5; color:var(--text);">
+        <b>2. Serverga ma'lumot uzatilmaydi:</b> ZirhNote 100% avtonom ishlaydi. Yozuvlaringiz uchinchi shaxslar yoki serverlarga uzatilmaydi.
+      </p>
+      <p style="font-size:14px; line-height:1.5; color:var(--text);">
+        <b>3. Chalg'ituvchi himoya va Avto-qulf:</b> Soxta parol funksiyasi favqulodda vaziyatlarda shaxsiy ma'lumotlaringizni yashirishga xizmat qiladi, 45 soniyalik taymer esa ilovani avtomatik qulflaydi.
+      </p>
+      <p style="font-size:13px; color:#ef4444;">
+        ⚠️ Diqqat: Agar Master-parolingizni unutsangiz, shifrlangan yozuvlarni tiklashning imkoni yo'q.
+      </p>
+      <button class="btn" onclick="closePrivacy()">Tushunarli, yopish</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
